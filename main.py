@@ -107,6 +107,14 @@ def list_team():
         m["_id"] = str(m["_id"])
     return members
 
+@app.delete("/admin/team/{username}")
+def delete_team_member(username: str):
+    coll = collection("teammember")
+    res = coll.delete_one({"username": username})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Member not found")
+    return {"ok": True}
+
 # Admin creates complaints and assigns
 @app.post("/admin/complaints")
 def create_complaint(data: ComplaintCreate):
@@ -127,6 +135,18 @@ def list_complaints(assigned_to: Optional[str] = None):
     for i in items:
         i["_id"] = str(i["_id"])
     return items
+
+@app.delete("/admin/complaints/{complaint_id}")
+def delete_complaint(complaint_id: str):
+    coll = collection("complaint")
+    try:
+        oid = ObjectId(complaint_id)
+    except Exception:
+        raise HTTPException(status_code=400, detail="Invalid complaint id")
+    res = coll.delete_one({"_id": oid})
+    if res.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Complaint not found")
+    return {"ok": True}
 
 # Team endpoints
 @app.get("/team/complaints")
